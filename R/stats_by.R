@@ -20,11 +20,9 @@ NULL
 ##' @details sum_by does summation.
 ##' @export
 sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
-    if("character" %in% class(grp)) {
-        grp <- g_char2int(ch = grp)
-    } else {
-        contiguous(g = grp, error = TRUE)
-    }
+    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    contiguous(g = grp, error = TRUE)
+    ## ------------------------------
     sum_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
 }
 
@@ -32,11 +30,9 @@ sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
 ##' @details max_by calculates the maximum.
 ##' @export
 max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
-    if("character" %in% class(grp)) {
-        grp <- g_char2int(ch = grp)
-    } else {
-        contiguous(g = grp, error = TRUE)
-    }
+    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    contiguous(g = grp, error = TRUE)
+    ## ------------------------------
     max_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
 }
 
@@ -44,11 +40,9 @@ max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
 ##' @details min_by calculates the minimum.
 ##' @export
 min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
-    if("character" %in% class(grp)) {
-        grp <- g_char2int(ch = grp)
-    } else {
-        contiguous(g = grp, error = TRUE)
-    }
+    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    contiguous(g = grp, error = TRUE)
+    ## ------------------------------
     min_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
 }
 
@@ -58,11 +52,9 @@ min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
 ##'     duplicates.
 ##' @export
 duplicated_by <- function(x, grp, na.rm = FALSE){
-    if("character" %in% class(grp)) {
-        grp <- g_char2int(ch = grp)
-    } else {
-        contiguous(g = grp, error = TRUE)
-    }
+    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    contiguous(g = grp, error = TRUE)
+    ## ------------------------------
     dup_g(x = x, g = grp, na_rm = na.rm)
 }
 
@@ -71,11 +63,9 @@ duplicated_by <- function(x, grp, na.rm = FALSE){
 ##'     count rows where x is missing.
 ##' @export
 n_by <- function(x, grp, na.rm = FALSE){
-    if("character" %in% class(grp)) {
-        grp <- g_char2int(ch = grp)
-    } else {
-        contiguous(g = grp, error = TRUE)
-    }
+    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    contiguous(g = grp, error = TRUE)
+    ## ------------------------------
     sum_g(x = if(na.rm) as.integer(!is.na(x)) else rep(1L, length(x)),
           g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
 }
@@ -86,11 +76,9 @@ n_by <- function(x, grp, na.rm = FALSE){
 ##'     duplicates.
 ##' @export
 uniqueN_by <- function(x, grp, na.rm = FALSE){
-    if("character" %in% class(grp)) {
-        grp <- g_char2int(ch = grp)
-    } else {
-        contiguous(g = grp, error = TRUE)
-    }
+    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    contiguous(g = grp, error = TRUE)
+    ## ------------------------------
     n <- sum_g(x = if(na.rm) as.integer(!is.na(x)) else rep(1L, length(x)),
                g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
     m <- sum_g(x = as.integer(dup_g(x = x, g = grp, na_rm = na.rm)),
