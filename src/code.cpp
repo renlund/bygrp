@@ -316,7 +316,7 @@ NumericVector min_g(NumericVector x, IntegerVector g, bool na_rm = false,
 // }
 
 template <class V, class E>
-LogicalVector dup_template(V x, IntegerVector g, bool na_rm = false){
+LogicalVector dup_template(V x, IntegerVector g, bool na_rm){
   int n = x.size();
   int m = g.size();
   if( n != m ) stop("grouping not of same length as input");
@@ -350,15 +350,15 @@ LogicalVector dup_template(V x, IntegerVector g, bool na_rm = false){
 //' @return boolean vector
 //' @export
 // [[Rcpp::export]]
-LogicalVector dup_g(SEXP x) {
+LogicalVector dup_g(SEXP x, IntegerVector g, bool na_rm = false) {
   switch (TYPEOF(x)) {
-    case INTSXP:  return dup_template<IntegerVector, int> (x);
-    case REALSXP: return dup_template<NumericVector, double> (x);
-    case STRSXP:  return dup_template<CharacterVector, String> (x);
-    case LGLSXP:  return dup_template<LogicalVector, bool> (x);
-    default: {
-      std::cout << "not defined for input (" << TYPEOF(x) << ")" << std::endl;
-      return LogicalVector(0);
-    }
+  case INTSXP:  return dup_template<IntegerVector, int> (x, g, na_rm);
+  case REALSXP: return dup_template<NumericVector, double> (x, g, na_rm);
+  case STRSXP:  return dup_template<CharacterVector, String> (x, g, na_rm);
+  case LGLSXP:  return dup_template<LogicalVector, bool> (x, g, na_rm);
+  default: {
+    std::cout << "not defined for input (" << TYPEOF(x) << ")" << std::endl;
+    return LogicalVector(0);
+  }
   }
 }
