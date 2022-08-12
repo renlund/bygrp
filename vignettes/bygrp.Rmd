@@ -1,0 +1,178 @@
+---
+title: "bygrp"
+author: "Henrik Renlund"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document
+vignette: >
+  %\VignetteIndexEntry{bygrp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{data.table, dplyr, microbenchmark}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library(bygrp)
+library(dplyr)
+library(data.table)
+library(microbenchmark)
+```
+
+## Speed comparison
+
+We define a data generating function:
+```{r}
+.datafnc <- function(N = 10000, M = 10, V = 50, I = FALSE,
+                     na = FALSE, idNA = ceiling(N/1000),
+                     randNA = ceiling(N/20), seed = NULL){
+    ## N = number of units
+    ## M = max rows per unit {0,1,...,M}
+    ## V = max value per unit [-V, +V]
+    ## I = integer valued values
+    ## na = have missing values
+    ## idNA = number of units with completely missing values
+    ## randNA = number of rows selected at random to be missing
+    if(is.null(seed)) seed = 20220811
+    set.seed(seed)
+    df <- data.frame(id = rep(1:N, sample(1:M, N, TRUE)))
+    df$x = if(I){
+               sample(0:V, nrow(df), TRUE)
+           } else {
+               runif(nrow(df), min = -V, max = V)
+           }
+    if(na){
+        df$x[df$id %in% sample(1:N, idNA)] <- NA
+        df$x[sample(1:nrow(df), randNA)] <- NA
+    }
+    df
+}
+```
+
+A comparison is made for data without and with missing values.
+
+```{r}
+DF1 <- .datafnc(N = 10000, I = FALSE, na = FALSE, seed = 1)
+DF2 <- .datafnc(N = 10000, I = FALSE, na = TRUE, seed = 2)
+```
+
+A correspoding `tibble` (grouped on `id` prior to benchmarking) and `data.table`
+(keyed on `id` prior to benchmarking) will be set up to compare `bygrp` to
+`dplyr` and `data.table`, respectively.
+
+```{r, echo = FALSE}
+
+.COMP <- function(DF){
+    DP <- tibble(DF) %>% group_by(id)
+    DT <- as.data.table(DF, key = "id")
+    .fix <- function(s, m){
+        m$method <- factor(as.numeric(m$expr), levels = 1:3,
+                           labels = c("dplyr", "data.table", "bygrp"))
+        m$calc <- s
+        m
+    }
+    m <- .fix(s = "sum",
+              m = microbenchmark(
+                  DP <- mutate(DP, sum = sum(x, na.rm = TRUE)),
+                  DT[, sum := sum(x, na.rm = TRUE), by = id],
+                  DF$sum <- with(DF, sum_by(x, grp = id, na.rm = TRUE))
+              ))
+    R <- m
+    m <- .fix(s = "max",
+              m = microbenchmark(
+                  DP <- mutate(DP, max = max(x, na.rm = TRUE)),
+                  DT[, max := max(x, na.rm = TRUE), by = id],
+                  DF$max <- with(DF, max_by(x, grp = id, na.rm = TRUE))
+              ))
+    R <- rbind(R, m)
+    m <- .fix(s = "min",
+              m = microbenchmark(
+                  DP <- mutate(DP, min = min(x, na.rm = TRUE)),
+                  DT[, min := min(x, na.rm = TRUE), by = id],
+                  DF$min <- with(DF, min_by(x, grp = id, na.rm = TRUE))
+              ))
+    R <- rbind(R, m)
+    m <- .fix(s = "duplicated",
+              m = microbenchmark(
+                  DP <- mutate(DP, duplicated = duplicated(x, incomparables = NA)),
+                  DT[, duplicated := duplicated(x, incomparables = NA), by = id],
+                  DF$duplicated <- with(DF, duplicated_by(x, grp = id, na.rm = TRUE))
+              ))
+    R <- rbind(R, m)
+    m <- .fix(s = "uniqueN",
+              m = microbenchmark(
+                  DP <- mutate(DP, uniqueN = n_distinct(x, na.rm = TRUE)),
+                  DT[, uniqueN := uniqueN(x, na.rm = TRUE), by = id],
+                  DF$uniqueN <- with(DF, uniqueN_by(x, grp = id, na.rm = TRUE))
+              ))
+    R <- rbind(R, m)
+    .comp <- function(R){
+        REF <- tibble(R) %>% filter(method == "bygrp") %>%
+            group_by(calc) %>%
+            summarize(r1 = quantile(time, .25),
+                      r2 = quantile(time, .5),
+                      r3 = quantile(time, .75),
+                      .groups = "drop")
+        QS <- R %>% group_by(calc, method) %>%
+            summarise(q1 = quantile(time, probs = .25),
+                      q2 = quantile(time, probs = .5),
+                      q3 = quantile(time, probs = .75),
+                      .groups = "drop")
+        left_join(QS, REF, by = "calc") %>%
+            mutate(Q1 = q1 / r1, Q2 = q2 / r2, Q3 = q3 / r3) %>%
+            select(calc, method, Q1, Q2, Q3)
+    }
+    test.set <- setdiff(names(DF), c("id", "x"))
+    S <- NULL
+    for(NM in test.set){
+        x <- DF[[NM]]
+        y <- DT[[NM]]
+        na.x <- is.na(x)
+        na.y <- is.na(y)
+        inf.x <- is.infinite(x)
+        inf.y <- is.infinite(y)
+        r1 <- all(x[!inf.x] ==y[!inf.y], na.rm = TRUE)
+        r2 <- all(na.x == na.y)
+        r3 <- all(inf.x == inf.y)
+        S <- rbind(S, data.frame(variable = NM,
+                                 `equal` = r1,
+                                 `same NA` = r2,
+                                 `same Inf` = r3))
+    }
+    list(time = .comp(R), equal = S)
+}
+
+C1 <- .COMP(DF1)
+C2 <- .COMP(DF1)
+
+```
+
+```{r, echo = FALSE}
+cap <- paste0("Time comparison for data without missing (quartiles of ",
+              "calculation time). Normalized to the time of bygrp calculation.")
+knitr::kable(C1$time, caption = cap)
+```
+
+```{r, echo = FALSE}
+cap <- paste0("Sanity check: does bygrp and data.table calculated values ",
+              "coincide in the data without missing data?")
+knitr::kable(C1$equal, caption = cap)
+```
+
+```{r, echo = FALSE}
+cap <- paste0("Time comparison for data with missing. Normalized to ",
+              "the time of `bygrp` calculation.")
+knitr::kable(C2$time, caption = cap)
+```
+
+```{r, echo = FALSE}
+cap <- paste0("Sanity check: does bygrp and data.table calculated values ",
+              "coincide in the data with missing data?")
+knitr::kable(C2$equal, caption = cap)
+```
