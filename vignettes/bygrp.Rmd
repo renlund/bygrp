@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, echo = FALSE}
+```{r setup, message = FALSE, results = 'hide'}
 library(bygrp)
 library(dplyr)
 library(data.table)
@@ -58,8 +58,8 @@ We define a data generating function:
 A comparison is made for data without and with missing values.
 
 ```{r}
-DF1 <- .datafnc(N = 10000, I = FALSE, na = FALSE, seed = 1)
-DF2 <- .datafnc(N = 10000, I = FALSE, na = TRUE, seed = 2)
+DF1 <- .datafnc(N = 1000, I = FALSE, na = FALSE, seed = 1)
+DF2 <- .datafnc(N = 1000, I = FALSE, na = TRUE, seed = 2)
 ```
 
 A correspoding `tibble` (grouped on `id` prior to benchmarking) and `data.table`
@@ -105,11 +105,18 @@ A correspoding `tibble` (grouped on `id` prior to benchmarking) and `data.table`
                   DF$duplicated <- with(DF, duplicated_by(x, grp = id, na.rm = TRUE))
               ))
     R <- rbind(R, m)
-    m <- .fix(s = "uniqueN",
+    m <- .fix(s = "n_distinct / uniqueN",
               m = microbenchmark(
                   DP <- mutate(DP, uniqueN = n_distinct(x, na.rm = TRUE)),
                   DT[, uniqueN := uniqueN(x, na.rm = TRUE), by = id],
                   DF$uniqueN <- with(DF, uniqueN_by(x, grp = id, na.rm = TRUE))
+              ))
+    R <- rbind(R, m)
+    m <- .fix(s = "lag / shift",
+              m = microbenchmark(
+                  DP <- mutate(DP, lag1 = lag(x)),
+                  DT[, lag1 := shift(x), by = id],
+                  DF$lag1 <- with(DF, lag1_by(x, grp = id))
               ))
     R <- rbind(R, m)
     .comp <- function(R){

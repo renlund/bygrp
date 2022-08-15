@@ -2,35 +2,8 @@
 using namespace Rcpp;
 
 //' @rdname CppFnc
-//' @details map character grouping variable into consecutive integer values, while also checking for contiguity
-//' @return integer vector
-//' @export
-// [[Rcpp::export]]
-IntegerVector g_char2int(CharacterVector ch, int start = 1) {
-  std::unordered_set<String> seen;
-  int n = ch.size();
-  if(n == 0){
-    warning("grouping of length 0");
-    IntegerVector wtf(0);
-    return wtf;
-  }
-  IntegerVector id(n, start);
-  seen.insert(ch[0]);
-  for(int i = 1; i<n; i++){
-    if( ch[i] != ch[i-1] ) {
-      if( !seen.insert(ch[i]).second ) {
-	stop("grouping not contiguous");
-      }
-      start++;
-    }
-    id[i] = start;
-  }
-  return id;
-}
-
-//' @rdname CppFnc
-//' @details this function checks if x's unique values are contiguously arranged
-//' @return a boolean
+//' @details contiguous: this function checks if x's unique values are
+//'   contiguously arranged
 //' @export
 // [[Rcpp::export]]
 bool contiguous(IntegerVector g, bool error = false) {
@@ -53,13 +26,9 @@ bool contiguous(IntegerVector g, bool error = false) {
   return pass;
 }
 
-//' @rdname CppFnc
-//' @details sum numeric values by group
-//' @return numeric vector of same length as x
-//' @export
-// [[Rcpp::export]]
-NumericVector sum_g(NumericVector x, IntegerVector g, bool na_rm = false,
-		    bool na_opt = false, bool no_na = false){
+template <class V, class E>
+V sum_template(V x, IntegerVector g, bool na_rm = false,
+	       bool na_opt = false, bool no_na = false){
   int n = x.size();
   int m = g.size();
   if( n != m ) stop("grouping not of same length as input");
@@ -67,10 +36,10 @@ NumericVector sum_g(NumericVector x, IntegerVector g, bool na_rm = false,
     warning("input has length 0");
     return x;
   }
-  NumericVector y(n);
+  V y(n);
   int i = 0;
   int G = g[0];
-  double S;
+  E S;
   int j;
   if(no_na){
     // this part if one can know that there are no missing values
@@ -97,7 +66,7 @@ NumericVector sum_g(NumericVector x, IntegerVector g, bool na_rm = false,
       na_counter = 0;
       while( (i < n) & (g[i] == G) ){
 	counter++;
-	if(NumericVector::is_na(x[i])){
+	if(V::is_na(x[i])){
 	  na_counter++;
 	} else {
 	  S = S + x[i];
@@ -125,29 +94,28 @@ NumericVector sum_g(NumericVector x, IntegerVector g, bool na_rm = false,
 }
 
 //' @rdname CppFnc
-//' @details number of observations by group
-//' @return numeric vector
+//' @details sum_g: sum numeric values by group
 //' @export
 // [[Rcpp::export]]
-NumericVector n_g(IntegerVector g){
-  int n = g.size();
-  if(n == 0){
-    warning("grouping of length 0");
-    NumericVector wtf(0);
-    return wtf;
-  }
-  NumericVector one(n, 1.0);
-  NumericVector r = sum_g(one, g, false, false, true);
+NumericVector sum_g (NumericVector x, IntegerVector g, bool na_rm = false,
+		     bool na_opt = false, bool no_na = false){
+  NumericVector r = sum_template <NumericVector, double> (x, g, na_rm, na_opt, no_na);
   return r;
 }
 
 //' @rdname CppFnc
-//' @details calculate the maximum numeric value by group
-//' @return numeric vector of same length as x
+//' @details sumi_g: sum integer values by group
 //' @export
 // [[Rcpp::export]]
-NumericVector max_g(NumericVector x, IntegerVector g, bool na_rm = false,
-		    bool na_opt = false, bool no_na = false){
+IntegerVector sumi_g (IntegerVector x, IntegerVector g, bool na_rm = false,
+		      bool na_opt = false, bool no_na = false){
+  IntegerVector r = sum_template <IntegerVector, int> (x, g, na_rm, na_opt, no_na);
+  return r;
+}
+
+template <class V, class E>
+V max_template(V x, IntegerVector g, bool na_rm = false,
+	bool na_opt = false, bool no_na = false){
   int n = x.size();
   int m = g.size();
   if( n != m ) stop("grouping not of same length as input");
@@ -155,10 +123,10 @@ NumericVector max_g(NumericVector x, IntegerVector g, bool na_rm = false,
     warning("input has length 0");
     return x;
   }
-  NumericVector y(n);
+  V y(n);
   int i = 0;
   int G = g[0];
-  double S;
+  E S;
   int j;
   if(no_na){
     // this part if one can know that there are no missing values
@@ -186,7 +154,7 @@ NumericVector max_g(NumericVector x, IntegerVector g, bool na_rm = false,
       na_counter = 0;
       while( (i < n) & (g[i] == G) ){
 	counter++;
-	if(NumericVector::is_na(x[i])){
+	if(V::is_na(x[i])){
 	  na_counter++;
 	} else {
 	  if(x[i] > S) S = x[i];
@@ -214,12 +182,28 @@ NumericVector max_g(NumericVector x, IntegerVector g, bool na_rm = false,
 }
 
 //' @rdname CppFnc
-//' @details calculate the minimum numeric value by group
-//' @return numeric vector of same length as x
+//' @details max_g: calculate the maximum numeric value by group
 //' @export
 // [[Rcpp::export]]
-NumericVector min_g(NumericVector x, IntegerVector g, bool na_rm = false,
-		    bool na_opt = false, bool no_na = false){
+NumericVector max_g (NumericVector x, IntegerVector g, bool na_rm = false,
+		     bool na_opt = false, bool no_na = false){
+  NumericVector r = max_template <NumericVector, double> (x, g, na_rm, na_opt, no_na);
+  return r;
+}
+
+//' @rdname CppFnc
+//' @details maxi_g: calculate the maximum integer value by group
+//' @export
+// [[Rcpp::export]]
+IntegerVector maxi_g (IntegerVector x, IntegerVector g, bool na_rm = false,
+		      bool na_opt = false, bool no_na = false){
+  IntegerVector r = max_template <IntegerVector, int> (x, g, na_rm, na_opt, no_na);
+  return r;
+}
+
+template <class V, class E>
+V min_template(V x, IntegerVector g, bool na_rm = false,
+	       bool na_opt = false, bool no_na = false){
   int n = x.size();
   int m = g.size();
   if( n != m ) stop("grouping not of same length as input");
@@ -227,10 +211,10 @@ NumericVector min_g(NumericVector x, IntegerVector g, bool na_rm = false,
     warning("input has length 0");
     return x;
   }
-  NumericVector y(n);
+  V y(n);
   int i = 0;
   int G = g[0];
-  double S;
+  E S;
   int j;
   if(no_na){
     // this part if one can know that there are no missing values
@@ -258,7 +242,7 @@ NumericVector min_g(NumericVector x, IntegerVector g, bool na_rm = false,
       na_counter = 0;
       while( (i < n) & (g[i] == G) ){
 	counter++;
-	if(NumericVector::is_na(x[i])){
+	if(V::is_na(x[i])){
 	  na_counter++;
 	} else {
 	  if(x[i] < S) S = x[i];
@@ -285,35 +269,25 @@ NumericVector min_g(NumericVector x, IntegerVector g, bool na_rm = false,
   return y;
 }
 
-// // [[Rcpp::export]]
-// LogicalVector dup_g(CharacterVector x, IntegerVector g, bool na_rm = false) {
-//   int n = x.size();
-//   int m = g.size();
-//   if( n != m ) stop("grouping not of same length as input");
-//   if(n == 0){
-//     warning("input of length 0");
-//     LogicalVector wtf(0);
-//     return wtf;
-//   }
-//   LogicalVector out(n, false);
-//   std::unordered_set<String> seen;
-//   int i = 0;
-//   int j;
-//   while(i < n){
-//     // std::cout << x[i] << std::endl;
-//     seen.insert(x[i]);
-//     j = i;
-//     i++;
-//     while( (i < n) & (g[i] == g[j]) ) {
-//       if(!CharacterVector::is_na(x[i]) & !na_rm){
-// 	out[i] = !seen.insert(x[i]).second;
-//       }
-//       i++;
-//     }
-//     seen.erase(seen.begin(), seen.end());
-//   }
-//   return out;
-// }
+//' @rdname CppFnc
+//' @details min_g: calculate the minimum numeric value by group
+//' @export
+// [[Rcpp::export]]
+NumericVector min_g (NumericVector x, IntegerVector g, bool na_rm = false,
+		     bool na_opt = false, bool no_na = false){
+  NumericVector r = min_template <NumericVector, double> (x, g, na_rm, na_opt, no_na);
+  return r;
+}
+
+//' @rdname CppFnc
+//' @details mini_g: calculate the minimum integer value by group
+//' @export
+// [[Rcpp::export]]
+IntegerVector mini_g (IntegerVector x, IntegerVector g, bool na_rm = false,
+		      bool na_opt = false, bool no_na = false){
+  IntegerVector r = min_template <IntegerVector, int> (x, g, na_rm, na_opt, no_na);
+  return r;
+}
 
 template <class V, class E>
 LogicalVector dup_template(V x, IntegerVector g, bool na_rm){
@@ -330,7 +304,6 @@ LogicalVector dup_template(V x, IntegerVector g, bool na_rm){
   int i = 0;
   int j;
   while(i < n){
-    // std::cout << x[i] << std::endl;
     seen.insert(x[i]);
     j = i;
     i++;
@@ -346,19 +319,79 @@ LogicalVector dup_template(V x, IntegerVector g, bool na_rm){
 }
 
 //' @rdname CppFnc
-//' @details check for duplicated values in x within values of g
-//' @return boolean vector
+//' @details dup_g: calculate a logical vector indicating duplicated values in x by group
 //' @export
 // [[Rcpp::export]]
-LogicalVector dup_g(SEXP x, IntegerVector g, bool na_rm = false) {
-  switch (TYPEOF(x)) {
-  case INTSXP:  return dup_template<IntegerVector, int> (x, g, na_rm);
-  case REALSXP: return dup_template<NumericVector, double> (x, g, na_rm);
-  case STRSXP:  return dup_template<CharacterVector, String> (x, g, na_rm);
-  case LGLSXP:  return dup_template<LogicalVector, bool> (x, g, na_rm);
+LogicalVector dup_g(SEXP v, IntegerVector g, bool na_rm = false) {
+  switch (TYPEOF(v)) {
+  case INTSXP:  return dup_template<IntegerVector, int> (v, g, na_rm);
+  case REALSXP: return dup_template<NumericVector, double> (v, g, na_rm);
+  case STRSXP:  return dup_template<CharacterVector, String> (v, g, na_rm);
+  case LGLSXP:  return dup_template<LogicalVector, bool> (v, g, na_rm);
   default: {
-    std::cout << "not defined for input (" << TYPEOF(x) << ")" << std::endl;
+    std::cout << "not defined for input " << Rf_type2char(TYPEOF(v)) <<  std::endl;
     return LogicalVector(0);
   }
   }
+}
+
+//' @rdname CppFnc
+//' @details g_id: character grouping as integers
+//' @export
+// [[Rcpp::export]]
+IntegerVector g_id(CharacterVector gch) {
+  int n = gch.size();
+  if(n == 0){
+    warning("grouping of length 0");
+    IntegerVector wtf(0);
+    return wtf;
+  }
+  IntegerVector ans(n);
+  int grp = 1;
+  ans[0] = grp;
+  for (int i=1; i < n; i++) {
+    bool same = gch[i]==gch[i-1];
+    ans[i] = (grp+=!same);
+  }
+  return(ans);
+}
+
+//' @rdname CppFnc
+//' @details g_n: number of observations by group
+//' @export
+// [[Rcpp::export]]
+IntegerVector g_n(IntegerVector g) {
+  int n = g.size();
+  if(n == 0){
+    warning("grouping of length 0");
+    IntegerVector wtf(0);
+    return wtf;
+  }
+  IntegerVector one(n, 1);
+  IntegerVector r = sumi_g(one, g, false, false, true);
+  return r;
+}
+
+//' @rdname CppFnc
+//' @details g_row: row number by group
+//' @export
+//[[Rcpp::export]]
+IntegerVector g_row (IntegerVector g) {
+  int n = g.size();
+  if(n == 0){
+    warning("grouping of length 0");
+    IntegerVector wtf(0);
+    return wtf;
+  }
+  IntegerVector r(n, 1);
+  int j = 1;
+  for(int i = 1; i < n; i++){
+    if( g[i] == g[i-1] ){
+      j++;
+    } else {
+      j = 1;
+    }
+    r[i] = j;
+  }
+  return r;
 }

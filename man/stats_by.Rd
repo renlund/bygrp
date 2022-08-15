@@ -52,29 +52,26 @@ grp such that equal values appear consecutively, and there should be no
 missing values in grp.
 }
 \details{
-sum_by does summation.
+sum_by: summation.
 
-max_by calculates the maximum.
+max_by: maximum.
 
-min_by calculates the minimum.
+min_by: minimum.
 
-duplicated_by looks for duplicated values. If
-\code{na.rm = TRUE}, then missing values are never considered
-duplicates.
+duplicated_by: looks for duplicated values. If \code{na.rm = TRUE},
+then missing values are never considered duplicates.
 
-n_by calculates number of rows. If \code{na.rm = TRUE} it will not
+n_by: calculates number of rows. If \code{na.rm = TRUE} it will not
 count rows where x is missing.
 
-duplicated_by looks for duplicated values. If
-\code{na.rm = TRUE}, then missing values are never considered
-duplicates.
+uniqueN_by: number of unique values.
 
-anyTRUE_by checks for any TRUE value. Note that NAs
+anyTRUE_by: checks for any TRUE value. Note that NAs
 will count as FALSE.
 
-lag1_by is lag by 1.
+lag1_by: lag by 1.
 
-lead1_by is lead by 1.
+lead1_by: lead by 1.
 }
 \seealso{
 \code{\link{grp_calc}}

@@ -20,7 +20,7 @@ length.}
 Create shifted vector.
 }
 \details{
-lag1 calcualtes lag by 1.
+lag1: calculate lag by 1.
 
-lead1 calculates lead by 1.
+lead1: calculate lead by 1.
 }

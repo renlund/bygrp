@@ -2,6 +2,7 @@
 % Please edit documentation in R/grp_calc.R
 \name{grp_calc}
 \alias{grp_calc}
+\alias{grp_check}
 \alias{grp_id}
 \alias{grp_n}
 \alias{grp_last}
@@ -9,6 +10,8 @@
 \alias{grp_row}
 \title{Calculations on grouping vector}
 \usage{
+grp_check(grp)
+
 grp_id(grp)
 
 grp_n(grp)
@@ -27,15 +30,17 @@ Various functions to calculate things for a grouping vector. Important: grp
 is assumed to be ordered such that equal values appear contiguously.
 }
 \details{
-grp_id calculates an integer valued grouping vector starting at 1.
+grp_check: check the grouping variable
 
-grp_n calculates the number of rows per grouping value.
+grp_id: calculate an integer valued grouping vector
 
-grp_last calculates an indicator for last row per grouping value.
+grp_n: calculate the number of rows per grouping value.
 
-grp_first calculates an indicator for first row per grouping value.
+grp_last: calculate an indicator for last row per grouping value.
 
-grp_row calculates the row number per grouping value.
+grp_first: calculate an indicator for first row per grouping value.
+
+grp_row: calculate the row number per grouping value.
 }
 \examples{
 id = sprintf("id\%s", c(2,2,1,4,4,4))

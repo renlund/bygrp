@@ -8,14 +8,14 @@
 NULL
 
 ##' @rdname shift
-##' @details lag1 calcualtes lag by 1.
+##' @details lag1: calculate lag by 1.
 ##' @export
 lag1 <- function(x, fill = NA){
     c(fill, x[-length(x)])
 }
 
 ##' @rdname shift
-##' @details lead1 calculates lead by 1.
+##' @details lead1: calculate lead by 1.
 ##' @export
 lead1 <- function(x, fill = NA){
     c(x[-1], fill)
@@ -41,40 +41,95 @@ lead1 <- function(x, fill = NA){
 NULL
 
 ##' @rdname grp_calc
-##' @details grp_id calculates an integer valued grouping vector starting at 1.
+##' @details grp_check: check the grouping variable
+##' @export
+grp_check <- function(grp){
+    cl = class(grp)
+    cls <- paste0("{", paste0(cl, collapse = ", "), "}")
+    if(length(cl) > 1){
+        s <- paste0("grp has more than one class, maybe not a problem")
+        warning(s)
+    }
+    if(!is.integer(grp)){
+        s <- paste0("grp has class '", cls, "', use integer ",
+                    "grouping variable for optimal speed")
+        message(s)
+    }
+    if(is.numeric(grp) & !is.integer(grp)) {
+        grp_org <- grp
+        grp <- as.integer(grp)
+        if(!all(grp_org == grp)){
+            s <- paste0("numeric grouping will be treated as integer BUT ",
+                        "contains non-integer values")
+            stop(s)
+        }
+    }
+    grp <- grp_id(grp)
+    if(!contigous(grp, error = FALSE)){
+        s <- paste0("grouping is not sufficiently ordered, it needs to be ",
+                    "contiguous (have its unique values next to each other)")
+        stop(s)
+    } else {
+        message("grouping is sufficiently ordered (contiguous)")
+    }
+    invisible(NULL)
+}
+
+##' @rdname grp_calc
+##' @details grp_id: calculate an integer valued grouping vector
 ##' @export
 grp_id <- function(grp){
-    rl <- rle(grp)
-    rep.int(x = 1:length(rl$values), times = rl$lengths)
+    cl <- cl0 <- class(grp)
+    if(length(cl) > 1) {
+        cl <- if(is.integer(grp)){
+                  "integer"
+              } else if(is.numeric(grp)){
+                  "numeric"
+              } else if(is.factor(grp)){
+                  "factor"
+              } else if(is.character(grp)){
+                  "character"
+              } else "other"
+    }
+    switch(
+        EXPR = cl,
+        integer = grp,
+        factor = as.integer(grp),
+        numeric = {
+            warning("numeric grouping will be 'as.integer'")
+            as.integer(grp)
+        },
+        character = g_id(gch = grp),
+        stop("no supported class in {", paste0(cl0, collapse = ", "), "}")
+    )
 }
 
 ##' @rdname grp_calc
-##' @details grp_n calculates the number of rows per grouping value.
+##' @details grp_n: calculate the number of rows per grouping value.
 ##' @export
 grp_n <- function(grp){
-    rl <- rle(grp)
-    rep.int(x = rl$lengths, times = rl$lengths)
+    if(!is.integer(grp)) grp <- grp_id(grp)
+    g_n(g = grp)
 }
 
 ##' @rdname grp_calc
-##' @details grp_last calculates an indicator for last row per grouping value.
+##' @details grp_last: calculate an indicator for last row per grouping value.
 ##' @export
 grp_last <- function(grp){
-    ## c(head(grp != lead1(grp), -1), TRUE)
     c((grp != lead1(grp))[-length(grp)], TRUE)
 }
 
 ##' @rdname grp_calc
-##' @details grp_first calculates an indicator for first row per grouping value.
+##' @details grp_first: calculate an indicator for first row per grouping value.
 ##' @export
 grp_first <- function(grp){
     c(TRUE, (grp !=lag1(grp))[-1])
 }
 
 ##' @rdname grp_calc
-##' @details grp_row calculates the row number per grouping value.
+##' @details grp_row: calculate the row number per grouping value.
 ##' @export
 grp_row <- function(grp){
-    a <- seq_len(length.out = length(grp))
-    1 + a - rep.int(x = a[grp_first(grp)], times = rle(grp)$lengths)
+    if(!is.integer(grp)) grp <- grp_id(grp)
+    g_row(g = grp)
 }

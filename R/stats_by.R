@@ -17,77 +17,90 @@
 NULL
 
 ##' @rdname stats_by
-##' @details sum_by does summation.
+##' @details sum_by: summation.
 ##' @export
 sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
-    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    if(!is.integer(grp)) grp <- grp_id(grp)
     contiguous(g = grp, error = TRUE)
     ## ------------------------------
-    sum_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    if(is.integer(x)){
+        sumi_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    } else {
+        sum_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    }
 }
 
 ##' @rdname stats_by
-##' @details max_by calculates the maximum.
+##' @details max_by: maximum.
 ##' @export
 max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
-    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    if(!is.integer(grp)) grp <- grp_id(grp)
     contiguous(g = grp, error = TRUE)
     ## ------------------------------
-    max_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    if(is.integer(x)){
+        maxi_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    } else {
+        max_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    }
 }
 
 ##' @rdname stats_by
-##' @details min_by calculates the minimum.
+##' @details min_by: minimum.
 ##' @export
 min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
-    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    if(!is.integer(grp)) grp <- grp_id(grp)
     contiguous(g = grp, error = TRUE)
     ## ------------------------------
-    min_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    if(is.integer(x)){
+        mini_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    } else {
+        min_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
+    }
 }
 
 ##' @rdname stats_by
-##' @details duplicated_by looks for duplicated values. If
-##'     \code{na.rm = TRUE}, then missing values are never considered
-##'     duplicates.
+##' @details duplicated_by: looks for duplicated values. If \code{na.rm = TRUE},
+##'     then missing values are never considered duplicates.
 ##' @export
 duplicated_by <- function(x, grp, na.rm = FALSE){
-    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    if(!is.integer(grp)) grp <- grp_id(grp)
     contiguous(g = grp, error = TRUE)
     ## ------------------------------
-    dup_g(x = x, g = grp, na_rm = na.rm)
+    dup_g(v = x, g = grp, na_rm = na.rm)
 }
 
 ##' @rdname stats_by
-##' @details n_by calculates number of rows. If \code{na.rm = TRUE} it will not
+##' @details n_by: calculates number of rows. If \code{na.rm = TRUE} it will not
 ##'     count rows where x is missing.
 ##' @export
 n_by <- function(x, grp, na.rm = FALSE){
-    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    if(!is.integer(grp)) grp <- grp_id(grp)
     contiguous(g = grp, error = TRUE)
     ## ------------------------------
-    sum_g(x = if(na.rm) as.integer(!is.na(x)) else rep(1L, length(x)),
-          g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
+    if(na.rm){
+        sumi_g(x = as.integer(!is.na(x)), g = grp, na_rm = FALSE,
+              na_opt = FALSE, no_na = TRUE)
+    } else {
+        g_n(g = grp)
+    }
 }
 
 ##' @rdname stats_by
-##' @details duplicated_by looks for duplicated values. If
-##'     \code{na.rm = TRUE}, then missing values are never considered
-##'     duplicates.
+##' @details uniqueN_by: number of unique values.
 ##' @export
 uniqueN_by <- function(x, grp, na.rm = FALSE){
-    if(!is.integer(grp)) grp <- data.table::rleid(grp)
+    if(!is.integer(grp)) grp <- grp_id(grp)
     contiguous(g = grp, error = TRUE)
     ## ------------------------------
-    n <- sum_g(x = if(na.rm) as.integer(!is.na(x)) else rep(1L, length(x)),
-               g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
-    m <- sum_g(x = as.integer(dup_g(x = x, g = grp, na_rm = na.rm)),
-               g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
+    n <- sumi_g(x = if(na.rm) as.integer(!is.na(x)) else rep(1L, length(x)),
+                g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
+    m <- sumi_g(x = as.integer(dup_g(v = x, g = grp, na_rm = na.rm)),
+                g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
     n-m
 }
 
 ##' @rdname stats_by
-##' @details anyTRUE_by checks for any TRUE value. Note that NAs
+##' @details anyTRUE_by: checks for any TRUE value. Note that NAs
 ##'     will count as FALSE.
 ##' @export
 anyTRUE_by <- function(x, grp){
@@ -95,7 +108,7 @@ anyTRUE_by <- function(x, grp){
 }
 
 ##' @rdname stats_by
-##' @details lag1_by is lag by 1.
+##' @details lag1_by: lag by 1.
 ##' @export
 lag1_by <- function(x, grp){
     i <- grp != lag1(x = grp)
@@ -106,7 +119,7 @@ lag1_by <- function(x, grp){
 }
 
 ##' @rdname stats_by
-##' @details lead1_by is lead by 1.
+##' @details lead1_by: lead by 1.
 ##' @export
 lead1_by <- function(x, grp){
     i <- grp != lead1(x = grp)
