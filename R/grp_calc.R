@@ -11,14 +11,16 @@ NULL
 ##' @details lag1: calculate lag by 1.
 ##' @export
 lag1 <- function(x, fill = NA){
-    c(fill, x[-length(x)])
+    n <- length(x)
+    if(n == 0) x else c(fill, x[-n])
 }
 
 ##' @rdname shift
 ##' @details lead1: calculate lead by 1.
 ##' @export
 lead1 <- function(x, fill = NA){
-    c(x[-1], fill)
+    n <- length(x)
+    if(n == 0) x else c(x[-1], fill)
 }
 
 ##' Calculations on grouping vector
@@ -51,7 +53,7 @@ grp_check <- function(grp){
         warning(s)
     }
     if(!is.integer(grp)){
-        s <- paste0("grp has class '", cls, "', use integer ",
+        s <- paste0("grp has class ", cls, ", use integer ",
                     "grouping variable for optimal speed")
         message(s)
     }
@@ -65,14 +67,14 @@ grp_check <- function(grp){
         }
     }
     grp <- grp_id(grp)
-    if(!contigous(grp, error = FALSE)){
+    if(!contiguous(grp, error = FALSE)){
         s <- paste0("grouping is not sufficiently ordered, it needs to be ",
                     "contiguous (have its unique values next to each other)")
         stop(s)
     } else {
         message("grouping is sufficiently ordered (contiguous)")
     }
-    invisible(NULL)
+    invisible(TRUE)
 }
 
 ##' @rdname grp_calc
@@ -116,14 +118,16 @@ grp_n <- function(grp){
 ##' @details grp_last: calculate an indicator for last row per grouping value.
 ##' @export
 grp_last <- function(grp){
-    c((grp != lead1(grp))[-length(grp)], TRUE)
+    n <- length(grp)
+    if(n == 0) logical(0) else c((grp != lead1(grp))[-n], TRUE)
 }
 
 ##' @rdname grp_calc
 ##' @details grp_first: calculate an indicator for first row per grouping value.
 ##' @export
 grp_first <- function(grp){
-    c(TRUE, (grp !=lag1(grp))[-1])
+    n <- length(grp)
+    if(n == 0) logical(0) else c(TRUE, (grp !=lag1(grp))[-1])
 }
 
 ##' @rdname grp_calc
