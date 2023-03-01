@@ -58,7 +58,7 @@ or else the standard value 0 (sum), -Inf (max), and Inf (min).}
 These are the functions implemented in C++ (via Rcpp).
 }
 \details{
-contiguous: this function checks if x's unique values are
+contiguous: this function checks if g's unique values are
 contiguously arranged
 
 sum_g: sum numeric values by group
