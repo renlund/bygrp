@@ -2,7 +2,7 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @rdname CppFnc
-#' @details contiguous: this function checks if x's unique values are
+#' @details contiguous: this function checks if g's unique values are
 #'   contiguously arranged
 #' @export
 contiguous <- function(g, error = FALSE) {

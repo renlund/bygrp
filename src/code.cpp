@@ -2,7 +2,7 @@
 using namespace Rcpp;
 
 //' @rdname CppFnc
-//' @details contiguous: this function checks if x's unique values are
+//' @details contiguous: this function checks if g's unique values are
 //'   contiguously arranged
 //' @export
 // [[Rcpp::export]]
@@ -303,13 +303,18 @@ LogicalVector dup_template(V x, IntegerVector g, bool na_rm){
   std::unordered_set<E> seen;
   int i = 0;
   int j;
+  int nas;
   while(i < n){
     seen.insert(x[i]);
+    nas = 0;
     j = i;
     i++;
     while( (i < n) & (g[i] == g[j]) ) {
-      if(!V::is_na(x[i]) & !na_rm){
+      if(!V::is_na(x[i])){
 	out[i] = !seen.insert(x[i]).second;
+      } else if(!na_rm){
+	if(nas >= 1) out[i] = true;
+	nas++;
       }
       i++;
     }
