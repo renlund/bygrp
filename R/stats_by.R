@@ -12,6 +12,7 @@
 ##'     result still be NA for the cases where x is completely missing?
 ##' @param noNA A logical value; in some cases x cannot contain missing values,
 ##'     then this parameter can be set to TRUE to gain some speed.
+##' @param check A logical value; check that grp is contiguous?
 ##' @seealso \code{\link{grp_calc}}
 ##' @name stats_by
 NULL
@@ -19,9 +20,9 @@ NULL
 ##' @rdname stats_by
 ##' @details sum_by: summation.
 ##' @export
-sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
+sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
-    contiguous(g = grp, error = TRUE)
+    if(check) contiguous(g = grp, error = TRUE)
     ## ------------------------------
     if(is.integer(x)){
         sumi_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
@@ -33,9 +34,9 @@ sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
 ##' @rdname stats_by
 ##' @details max_by: maximum.
 ##' @export
-max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
+max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
-    contiguous(g = grp, error = TRUE)
+    if(check) contiguous(g = grp, error = TRUE)
     ## ------------------------------
     if(is.integer(x)){
         maxi_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
@@ -47,9 +48,9 @@ max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
 ##' @rdname stats_by
 ##' @details min_by: minimum.
 ##' @export
-min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
+min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
-    contiguous(g = grp, error = TRUE)
+    if(check) contiguous(g = grp, error = TRUE)
     ## ------------------------------
     if(is.integer(x)){
         mini_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
@@ -62,9 +63,9 @@ min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE){
 ##' @details duplicated_by: looks for duplicated values. If \code{na.rm = TRUE},
 ##'     then missing values are never considered duplicates.
 ##' @export
-duplicated_by <- function(x, grp, na.rm = FALSE){
+duplicated_by <- function(x, grp, na.rm = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
-    contiguous(g = grp, error = TRUE)
+    if(check) contiguous(g = grp, error = TRUE)
     ## ------------------------------
     dup_g(v = x, g = grp, na_rm = na.rm)
 }
@@ -73,9 +74,9 @@ duplicated_by <- function(x, grp, na.rm = FALSE){
 ##' @details n_by: calculates number of rows. If \code{na.rm = TRUE} it will not
 ##'     count rows where x is missing.
 ##' @export
-n_by <- function(x, grp, na.rm = FALSE){
+n_by <- function(x, grp, na.rm = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
-    contiguous(g = grp, error = TRUE)
+    if(check) contiguous(g = grp, error = TRUE)
     ## ------------------------------
     if(na.rm){
         sumi_g(x = as.integer(!is.na(x)), g = grp, na_rm = FALSE,
@@ -88,9 +89,9 @@ n_by <- function(x, grp, na.rm = FALSE){
 ##' @rdname stats_by
 ##' @details uniqueN_by: number of unique values.
 ##' @export
-uniqueN_by <- function(x, grp, na.rm = FALSE){
+uniqueN_by <- function(x, grp, na.rm = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
-    contiguous(g = grp, error = TRUE)
+    if(check) contiguous(g = grp, error = TRUE)
     ## ------------------------------
     n <- sumi_g(x = if(na.rm) as.integer(!is.na(x)) else rep(1L, length(x)),
                 g = grp, na_rm = FALSE, na_opt = FALSE, no_na = TRUE)
@@ -103,14 +104,19 @@ uniqueN_by <- function(x, grp, na.rm = FALSE){
 ##' @details anyTRUE_by: checks for any TRUE value. Note that NAs
 ##'     will count as FALSE.
 ##' @export
-anyTRUE_by <- function(x, grp){
-    sum_by(x = as.numeric(x & !is.na(x)), grp = grp, noNA = TRUE) > 0
+anyTRUE_by <- function(x, grp, check = FALSE){
+    sum_by(x = as.numeric(x & !is.na(x)), grp = grp, noNA = TRUE, check = check) > 0
 }
 
 ##' @rdname stats_by
 ##' @details lag1_by: lag by 1.
 ##' @export
-lag1_by <- function(x, grp){
+lag1_by <- function(x, grp, check = FALSE){
+    if(check){
+        if(!is.integer(grp)) grp <- grp_id(grp)
+        contiguous(g = grp, error = TRUE)
+    }
+    ## ------------------------------
     i <- grp != lag1(x = grp)
     i[1] <- TRUE
     l <- lag1(x = x)
@@ -121,7 +127,12 @@ lag1_by <- function(x, grp){
 ##' @rdname stats_by
 ##' @details lead1_by: lead by 1.
 ##' @export
-lead1_by <- function(x, grp){
+lead1_by <- function(x, grp, check = FALSE){
+    if(check){
+        if(!is.integer(grp)) grp <- grp_id(grp)
+        contiguous(g = grp, error = TRUE)
+    }
+    ## ------------------------------
     i <- grp != lead1(x = grp)
     i[length(i)] <- TRUE
     l <- lead1(x = x)

@@ -13,23 +13,23 @@
 \alias{lead1_by}
 \title{Fast statistics within grouping}
 \usage{
-sum_by(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE)
+sum_by(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE)
 
-max_by(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE)
+max_by(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE)
 
-min_by(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE)
+min_by(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE)
 
-duplicated_by(x, grp, na.rm = FALSE)
+duplicated_by(x, grp, na.rm = FALSE, check = FALSE)
 
-n_by(x, grp, na.rm = FALSE)
+n_by(x, grp, na.rm = FALSE, check = FALSE)
 
-uniqueN_by(x, grp, na.rm = FALSE)
+uniqueN_by(x, grp, na.rm = FALSE, check = FALSE)
 
-anyTRUE_by(x, grp)
+anyTRUE_by(x, grp, check = FALSE)
 
-lag1_by(x, grp)
+lag1_by(x, grp, check = FALSE)
 
-lead1_by(x, grp)
+lead1_by(x, grp, check = FALSE)
 }
 \arguments{
 \item{x}{A vector.}
@@ -44,6 +44,8 @@ result still be NA for the cases where x is completely missing?}
 
 \item{noNA}{A logical value; in some cases x cannot contain missing values,
 then this parameter can be set to TRUE to gain some speed.}
+
+\item{check}{A logical value; check that grp is contiguous?}
 }
 \description{
 \code{X_by} are functions to calculate the statistic X under a grouping
