@@ -39,18 +39,20 @@ calculated. Should not contain missing values.}
 
 \item{na.rm}{A logical value; remove missing values}
 
-\item{NAopt}{A logical value; if missing values are removed, should the
-result still be NA for the cases where x is completely missing?}
+\item{NAopt}{A logical value; if missing values are removed
+(i.e. \code{na.rm = TRUE}), a TRUE here means that the result is NA if
+all values of x within a fixed grouping value is missing, else R default
+behaviour is used with 0 (sum), -Inf (max) or Inf (min).}
 
 \item{noNA}{A logical value; in some cases x cannot contain missing values,
-then this parameter can be set to TRUE to gain some speed.}
+then this parameter can be set to TRUE to (possibly) gain some speed.}
 
 \item{check}{A logical value; check that grp is contiguous?}
 }
 \description{
 \code{X_by} are functions to calculate the statistic X under a grouping
 variable specified by grp. Important: x and grp are assumed to be ordered on
-grp such that equal values appear consecutively, and there should be no
+grp such that equal values appear contiguously, and there should be no
 missing values in grp.
 }
 \details{
