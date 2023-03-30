@@ -1,4 +1,19 @@
 test_that("sum_by works", {
+
+    ## something standard
+    g <- as.integer(c(7,7,7, 12, 1,1, 6,6,6,6))
+    x <- c(1:3, -1, 11:12, 100:103)
+    expect_equal(sum_by(x, grp = g),
+                 c(6,6,6, -1, 23,23, 406,406,406,406))
+
+    ## standard, but x is integer?
+    x <- as.integer(x)
+    expect_equal(sum_by(x, grp = g),
+                 c(6,6,6, -1, 23,23, 406,406,406,406))
+    expect_equal(sum_by(x, grp = g, noNA = TRUE),
+                 c(6,6,6, -1, 23,23, 406,406,406,406))
+
+    ## sum_by works with missing
     g <- as.integer(c(7,7,7, 12, 1,1, 6,6,6,6))
     x <- c(1:3, NA_real_, 11:12, NA_real_,101:103)
     expect_equal(sum_by(x, grp = g, na.rm = FALSE, NAopt = FALSE),
@@ -7,11 +22,46 @@ test_that("sum_by works", {
                  c(6,6,6, 0, 23,23, 306,306,306,306))
     expect_equal(sum_by(x, grp = g, na.rm = TRUE, NAopt = TRUE),
                  c(6,6,6, NA, 23,23, 306,306,306,306))
+
+    ## with missing, and x integer
+    x <- as.integer(x)
+    expect_equal(sum_by(x, grp = g, na.rm = FALSE, NAopt = FALSE),
+                 c(6,6,6, NA, 23,23, NA,NA,NA,NA))
+    expect_equal(sum_by(x, grp = g, na.rm = TRUE, NAopt = FALSE),
+                 c(6,6,6, 0, 23,23, 306,306,306,306))
+    expect_equal(sum_by(x, grp = g, na.rm = TRUE, NAopt = TRUE),
+                 c(6,6,6, NA, 23,23, 306,306,306,306))
+
+    ## lets just check the underlying function:
+    expect_equal(sumi_g(x, g = g, na_rm = FALSE, na_opt = FALSE),
+                 c(6,6,6, NA, 23,23, NA,NA,NA,NA))
+    expect_equal(sumi_g(x, g = g, na_rm = TRUE, na_opt = FALSE),
+                 c(6,6,6, 0, 23,23, 306,306,306,306))
+    expect_equal(sumi_g(x, g = g, na_rm = TRUE, na_opt = TRUE),
+                 c(6,6,6, NA, 23,23, 306,306,306,306))
 })
 
 test_that("max_by works", {
+    ## standard
+    g <- as.integer(c(2,2, 1,1,1, 3,3,3))
+    x <- c(-1,0, 0,7,1, 9,1,5)
+    expect_equal(max_by(x, grp = g), c(0,0, 7,7,7, 9,9,9))
+    ## standard and integer
+    expect_equal(max_by(as.integer(x), grp = g), c(0,0, 7,7,7, 9,9,9))
+
+
+    ## max_by with missing
     g <- as.integer(c(7,7,7, 12, 1,1, 6,6,6,6))
     x <- c(1:3, NA_real_, 11:12, NA_real_,101:103)
+    expect_equal(max_by(x, grp = g, na.rm = FALSE, NAopt = FALSE),
+                 c(3,3,3, NA, 12,12, NA,NA,NA,NA))
+    expect_equal(max_by(x, grp = g, na.rm = TRUE, NAopt = FALSE),
+                 c(3,3,3, -Inf, 12,12, 103,103,103,103))
+    expect_equal(max_by(x, grp = g, na.rm = TRUE, NAopt = TRUE),
+                 c(3,3,3, NA, 12,12, 103,103,103,103))
+
+    ## with missing, and integer
+    x <- as.integer(x)
     expect_equal(max_by(x, grp = g, na.rm = FALSE, NAopt = FALSE),
                  c(3,3,3, NA, 12,12, NA,NA,NA,NA))
     expect_equal(max_by(x, grp = g, na.rm = TRUE, NAopt = FALSE),
@@ -21,8 +71,25 @@ test_that("max_by works", {
 })
 
 test_that("min_by works", {
+    ## standard
+    g <- as.integer(c(2,2, 1,1,1, 3,3,3))
+    x <- c(-1,0, 0,7,1, 9,1,5)
+    expect_equal(min_by(x, grp = g), c(-1,-1, 0,0,0, 1,1,1))
+    ## standard and integer
+    expect_equal(min_by(as.integer(x), grp = g), c(-1,-1, 0,0,0, 1,1,1))
+
+    ## min_by with missing
     g <- as.integer(c(7,7,7, 12, 1,1, 6,6,6,6))
     x <- c(1:3, NA_real_, 11:12, NA_real_,101:103)
+    expect_equal(min_by(x, grp = g, na.rm = FALSE, NAopt = FALSE),
+                 c(1,1,1, NA, 11,11, NA,NA,NA,NA))
+    expect_equal(min_by(x, grp = g, na.rm = TRUE, NAopt = FALSE),
+                 c(1,1,1, Inf, 11,11, 101,101,101,101))
+    expect_equal(min_by(x, grp = g, na.rm = TRUE, NAopt = TRUE),
+                 c(1,1,1, NA, 11,11, 101,101,101,101))
+
+    ## with missing, and integer
+    x <- as.integer(x)
     expect_equal(min_by(x, grp = g, na.rm = FALSE, NAopt = FALSE),
                  c(1,1,1, NA, 11,11, NA,NA,NA,NA))
     expect_equal(min_by(x, grp = g, na.rm = TRUE, NAopt = FALSE),
