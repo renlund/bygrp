@@ -223,7 +223,7 @@ V min_template(V x, IntegerVector g, bool na_rm = false,
       S = x[i];
       i++;
       while( (i < n) & (g[i] == G) ){
-	if(x[i] > S) S = x[i];
+	if(x[i] < S) S = x[i];
 	i++;
       }
       for(int k = j; k < i; k++){
@@ -237,7 +237,7 @@ V min_template(V x, IntegerVector g, bool na_rm = false,
     int na_counter;
     while(i < n){
       j = i;
-      S = R_PosInf;
+      S = max(na_omit(x)); // R_PosInf <-- fails for integers??
       counter = 0;
       na_counter = 0;
       while( (i < n) & (g[i] == G) ){
@@ -256,7 +256,7 @@ V min_template(V x, IntegerVector g, bool na_rm = false,
 	  if(na_opt){
 	    S = NA_REAL;
 	  } else {
-	    S = R_PosInf; // Note: S would be R_PosInf anyway
+	    S = R_PosInf;
 	  }
 	}
       }
