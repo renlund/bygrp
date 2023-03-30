@@ -39,8 +39,9 @@ sum_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = F
 max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
     if(check) contiguous(g = grp, error = TRUE)
+    possibly_inf <- na.rm & !NAopt ## integer function cannot handle infinity
     ## ------------------------------
-    if(is.integer(x)){
+    if(is.integer(x) & !possibly_inf){
         maxi_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
     } else {
         max_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
@@ -53,8 +54,9 @@ max_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = F
 min_by <- function(x, grp, na.rm = FALSE, NAopt = FALSE, noNA = FALSE, check = FALSE){
     if(!is.integer(grp)) grp <- grp_id(grp)
     if(check) contiguous(g = grp, error = TRUE)
+    possibly_inf <- na.rm & !NAopt
     ## ------------------------------
-    if(is.integer(x)){
+    if(is.integer(x) & !possibly_inf){
         mini_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
     } else {
         min_g(x = x, g = grp, na_rm = na.rm, na_opt = NAopt, no_na = noNA)
