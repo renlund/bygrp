@@ -1,13 +1,13 @@
 Package: bygrp
 Title: Fast But Stupid Grouped Statistics
-Version: 0.0.1
+Version: 0.0.1.9001
 Authors@R:
     person("Henrik", "Renlund", email = "henrikrenlund@gmail.com", role = c("aut", "cre"))
 Description: Fast ways of calculating some common statistics under a grouping. Non-sophisticated (or stupid) in that any expression given to these functions will not themselves be evaluated under the grouping. Thus, not a general tool but perhaps useful in certain curcumstances. Always relies on data already being sufficiently ordered.
-License: GPL-3
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 LinkingTo:
     Rcpp
 Imports:
